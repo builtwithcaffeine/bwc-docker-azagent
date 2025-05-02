@@ -1,6 +1,7 @@
 FROM alpine:3.21.3
 
 ENV POWERSHELL_VERSION=7.5.1
+ENV PATH=$PATH:/root/.local/bin
 
 # Install dependencies
 RUN apk update && apk upgrade && \
@@ -26,8 +27,8 @@ RUN apk update && apk upgrade && \
     pwsh -Command "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Install-Module Az -Force -Scope AllUsers" && \
     \
     # Install Azure CLI and Bicep using pipx
-    pipx ensurepath && . ~/.bashrc && \
-    pipx install azure-cli && az bicep install && \
+    pipx install azure-cli && \
+    pipx ensurepath && az bicep install &&\
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Set default shell
