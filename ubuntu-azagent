@@ -1,0 +1,30 @@
+FROM ubuntu:24.04
+
+# Install dependencies
+RUN apt update && apt upgrade -y && apt install -y --no-install-recommends \
+    git \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    software-properties-common \
+    wget \
+    apt-transport-https && \
+    \
+    # Install PowerShell
+    curl -sSL https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb && \
+    dpkg -i /tmp/packages-microsoft-prod.deb && \
+    rm /tmp/packages-microsoft-prod.deb && apt update && apt install -y --no-install-recommends powershell && \
+    \
+    # Install Az PowerShell module
+    pwsh -Command "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted; Install-Module -Name Az -Scope AllUsers -Force" && \
+    \
+    # Install Azure CLI and Bicep
+    mkdir -p /etc/apt/keyrings && \
+    curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/azure-cli.list && \
+    apt update && apt install -y --no-install-recommends azure-cli && az bicep install && \
+    apt autoremove -y && apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Default shell
+CMD ["pwsh"]
